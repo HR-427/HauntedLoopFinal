@@ -122,6 +122,7 @@ MonoBehaviour:
   maxCameraPitch: 70
   minCameraPitch: -70
   headBob: {fileID: 4896909519798843805}
+  headBobAcceleration: 10
   idleBobAmp: 0.35
   idleBobFreq: 0.7
   walkBobAmp: 1
