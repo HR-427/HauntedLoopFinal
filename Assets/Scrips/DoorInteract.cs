@@ -4,59 +4,110 @@ using System.Collections;
 
 public class DoorInteract : MonoBehaviour
 {
-    public Transform teleportTarget;
+    [Header("Teleport Points")]
+    public Transform insidePoint;
+    public Transform outsidePoint;
+
+    [Header("Door Rules")]
+    public bool allowExit = true;
+
+    [Header("UI & Fade")]
     public TextMeshProUGUI interactText;
     public FadeController fadeController;
 
-    public bool isExitDoor; // CHECK this on exit doors
-
     private bool playerInRange;
+    private bool isTeleporting;
+
+    // Tracks which side the player is currently on
+    private bool playerIsOutside;
+
+    private Rigidbody playerRb;
+    private Transform player;
+
+    void Awake()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        player = playerObj.transform;
+        playerRb = playerObj.GetComponentInChildren<Rigidbody>();
+    }
 
     void Start()
     {
         interactText.gameObject.SetActive(false);
+
+        // Determine starting side ONCE
+        float distOutside = Vector3.Distance(player.position, outsidePoint.position);
+        float distInside = Vector3.Distance(player.position, insidePoint.position);
+        playerIsOutside = distOutside < distInside;
     }
 
     void Update()
     {
-        if (playerInRange && Input.GetKeyDown(KeyCode.E))
+        if (!playerInRange || isTeleporting)
+            return;
+
+        UpdatePrompt();
+
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            StartCoroutine(TeleportWithFade());
+            if (!allowExit && !playerIsOutside)
+                return;
+
+            StartCoroutine(TeleportRoutine());
         }
     }
 
-    IEnumerator TeleportWithFade()
+    IEnumerator TeleportRoutine()
     {
+        isTeleporting = true;
+        interactText.gameObject.SetActive(false);
+
         yield return StartCoroutine(fadeController.FadeOut());
 
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        player.transform.position = teleportTarget.position;
+        Transform target = playerIsOutside ? insidePoint : outsidePoint;
 
-        yield return new WaitForSeconds(0.2f);
+        playerRb.linearVelocity = Vector3.zero;
+        playerRb.angularVelocity = Vector3.zero;
+        playerRb.position = target.position;
 
+        // Flip side after teleport
+        playerIsOutside = !playerIsOutside;
+
+        yield return new WaitForFixedUpdate();
         yield return StartCoroutine(fadeController.FadeIn());
+
+        isTeleporting = false;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-            interactText.gameObject.SetActive(true);
+        if (!other.CompareTag("Player"))
+            return;
 
-            if (isExitDoor)
-                interactText.text = "Press E to Exit";
-            else
-                interactText.text = "Press E to Enter";
-        }
+        playerInRange = true;
+        UpdatePrompt();
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (!other.CompareTag("Player"))
+            return;
+
+        playerInRange = false;
+        interactText.gameObject.SetActive(false);
+    }
+
+    void UpdatePrompt()
+    {
+        if (!allowExit && !playerIsOutside)
         {
-            playerInRange = false;
             interactText.gameObject.SetActive(false);
+            return;
         }
+
+        interactText.gameObject.SetActive(true);
+        interactText.text = playerIsOutside
+            ? "Press E to Enter"
+            : "Press E to Exit";
     }
 }
