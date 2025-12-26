@@ -3,35 +3,54 @@ using System;
 
 public class PlayerHealth : MonoBehaviour
 {
+    [Header("Variables")]
     public int maxHealth = 100;
     public int health;
+    public bool takeDamage;
 
-    // Event the UI can listen to
+    [Header("UI")]
+    public GameObject depletedText;
+
+    [Header("References")]
+    public SpellCaster spellCast;
+
     public event Action<int, int> OnHealthChanged;
 
     void Start()
     {
         health = maxHealth;
+        takeDamage = true;
+
+        if (depletedText != null)
+            depletedText.SetActive(false);
+
         OnHealthChanged?.Invoke(health, maxHealth);
     }
 
     public void TakeDamage(int amount)
     {
+        if (!takeDamage) return;
+
+        spellCast.isCasting = true;
+
         health = Mathf.Clamp(health - amount, 0, maxHealth);
         Debug.Log("Player health is now: " + health);
         OnHealthChanged?.Invoke(health, maxHealth);
-        Debug.Log($"PlayerHealth instance {GetInstanceID()} health is now: {health}");
 
-    }
-
-    public void Heal(int amount)
-    {
-        health = Mathf.Clamp(health + amount, 0, maxHealth);
-        OnHealthChanged?.Invoke(health, maxHealth);
+        if (health == 0)
+        {
+            Die();
+        }
     }
 
     void Die()
     {
+        takeDamage = false;
+        spellCast.isCasting = false;
+
+        if (depletedText != null)
+            depletedText.SetActive(true);
+
         Debug.Log("Player died");
     }
 }

@@ -27,7 +27,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
-        movementEnabled = true;
+        SetMovementEnabled(true); 
 
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
@@ -54,7 +54,6 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // Stop horizontal movement while disabled (preserve vertical velocity)
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
 
@@ -62,8 +61,20 @@ public class PlayerMovement : MonoBehaviour
         jumpRequest = false;
     }
 
+    public void SetMovementEnabled(bool value)
+    {
+        movementEnabled = value;
+    }
+
+
     void MovePlayer()
     {
+        if (!movementEnabled)
+        {
+            animator.SetFloat("Speed", 0f);
+            return;
+        }
+
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
@@ -100,6 +111,7 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
     }
+
 
     void HandleJump()
     {

@@ -3,31 +3,26 @@ using UnityEngine.UI;
 
 public class PlayerHealthBar : MonoBehaviour
 {
+    [Header("References")]
     public PlayerHealth playerHealth;
     public Image healthFill;
 
-    void Start()
+    void OnEnable()
     {
-        if (playerHealth == null)
-        {
-            Debug.LogError("PlayerHealth NOT assigned to health bar");
-            return;
-        }
 
         playerHealth.OnHealthChanged += UpdateHealthBar;
-        Debug.Log("Health bar subscribed");
+
+        UpdateHealthBar(playerHealth.health, playerHealth.maxHealth);
     }
 
-    void OnDestroy()
+    void OnDisable()
     {
-        playerHealth.OnHealthChanged -= UpdateHealthBar;
+        if (playerHealth != null)
+            playerHealth.OnHealthChanged -= UpdateHealthBar;
     }
 
     void UpdateHealthBar(int current, int max)
     {
-        Debug.Log($"Health bar update: {current}/{max}");
-        healthFill.fillAmount = (float)current / max;
-        Debug.Log($"Health bar listening to instance {playerHealth.GetInstanceID()} → {current}/{max}");
-
+        healthFill.fillAmount = Mathf.Clamp01((float)current / max);
     }
 }
