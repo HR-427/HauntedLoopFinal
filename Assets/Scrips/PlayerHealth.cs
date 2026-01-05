@@ -27,6 +27,14 @@ public class PlayerHealth : MonoBehaviour
         OnHealthChanged?.Invoke(health, maxHealth);
     }
 
+    public void ResetHealth()
+    {
+        health = maxHealth;
+        takeDamage = true;
+        OnHealthChanged?.Invoke(health, maxHealth);
+    }
+
+
     public void TakeDamage(int amount)
     {
         if (!takeDamage) return;
@@ -49,7 +57,10 @@ public class PlayerHealth : MonoBehaviour
         spellCast.isCasting = false;
 
         if (depletedText != null)
+        {
             depletedText.SetActive(true);
+        }
+            
 
         Debug.Log("Player died");
     }
