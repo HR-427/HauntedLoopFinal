@@ -14,6 +14,10 @@ public class PlayerHealth : MonoBehaviour
     [Header("References")]
     public SpellCaster spellCast;
 
+    [Header("Floating Sprite Popup")]
+    public GameObject floatingTextPrefab;   // SpriteRenderer popup prefab
+    public Transform textSpawnPoint;         // optional: empty above player head
+
     public event Action<int, int> OnHealthChanged;
 
     void Start()
@@ -29,28 +33,65 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int amount)
     {
-        if (!takeDamage) return;
+        Debug.Log($"[PlayerHealth] TakeDamage called amount={amount} takeDamage={takeDamage} prefab={(floatingTextPrefab ? floatingTextPrefab.name : "NULL")}");
 
-        spellCast.isCasting = true;
+        if (!takeDamage)
+        {
+            Debug.LogWarning("[PlayerHealth] takeDamage is FALSE so damage + popup are blocked.");
+            return;
+        }
 
-        health = Mathf.Clamp(health - amount, 0, maxHealth);
-        Debug.Log("Player health is now: " + health);
+        health -= amount;
+        health = Mathf.Clamp(health, 0, maxHealth);
+
         OnHealthChanged?.Invoke(health, maxHealth);
 
-        if (health == 0)
-        {
+        SpawnFloatingText(amount);
+
+        if (health <= 0)
             Die();
-        }
     }
 
     void Die()
     {
         takeDamage = false;
-        spellCast.isCasting = false;
+
+        if (spellCast != null)
+            spellCast.isCasting = false;
 
         if (depletedText != null)
             depletedText.SetActive(true);
 
         Debug.Log("Player died");
     }
+
+    void SpawnFloatingText(int amount)
+    {
+        if (floatingTextPrefab == null)
+        {
+            Debug.LogWarning("[PlayerHealth] floatingTextPrefab is NULL (assign the prefab in Inspector).");
+            return;
+        }
+
+        Vector3 spawnPos = textSpawnPoint != null
+            ? textSpawnPoint.position
+            : transform.position + Vector3.up * 1.8f;
+
+        // Spawn with any rotation (we'll override it next)
+        GameObject popupObj = Instantiate(
+            floatingTextPrefab,
+            spawnPos,
+            Quaternion.identity
+        );
+
+        // ✅ PUT THIS CODE RIGHT HERE
+        if (Camera.main != null)
+        {
+            popupObj.transform.rotation =
+                Camera.main.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
+        }
+
+        Debug.Log($"[PlayerHealth] Spawned: {popupObj.name} active={popupObj.activeInHierarchy}");
+    }
+
 }

@@ -23,10 +23,13 @@ public class SpellCaster : MonoBehaviour
     public PlayerMovement playerMovement;
     public Animator animator;
 
+
     void Start()
     {
         isCasting = false;
-        if (hitOrigin == null) hitOrigin = transform;
+
+        if (hitOrigin == null)
+            hitOrigin = transform;
     }
 
     void Update()
@@ -46,6 +49,10 @@ public class SpellCaster : MonoBehaviour
     {
         isCasting = true;
 
+        // ✅ TAKE HEALTH HERE
+        if (playerHealth != null)
+            playerHealth.TakeDamage(spellHealthCost);
+
         if (playerMovement != null)
             playerMovement.SetMovementEnabled(false);
 
@@ -54,10 +61,13 @@ public class SpellCaster : MonoBehaviour
 
         float t = 0f;
 
-        // While casting, keep checking for enemies in range
         while (t < castDuration)
         {
-            Collider[] hits = Physics.OverlapSphere(hitOrigin.position, hitRadius, enemyLayers);
+            Collider[] hits = Physics.OverlapSphere(
+                hitOrigin.position,
+                hitRadius,
+                enemyLayers
+            );
 
             for (int i = 0; i < hits.Length; i++)
             {
@@ -68,19 +78,10 @@ public class SpellCaster : MonoBehaviour
             yield return null;
         }
 
-        if (playerHealth != null)
-            playerHealth.TakeDamage(spellHealthCost);
-
         if (playerMovement != null)
             playerMovement.SetMovementEnabled(true);
 
         isCasting = false;
     }
 
-    // Helpful: shows the hit radius in the Scene view
-    void OnDrawGizmosSelected()
-    {
-        Transform origin = hitOrigin != null ? hitOrigin : transform;
-        Gizmos.DrawWireSphere(origin.position, hitRadius);
-    }
 }

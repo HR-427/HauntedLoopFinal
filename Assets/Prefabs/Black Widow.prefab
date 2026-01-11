@@ -783,6 +783,7 @@ GameObject:
   - component: {fileID: 3337643505549474756}
   - component: {fileID: 897118333364381382}
   - component: {fileID: 6797754274506788138}
+  - component: {fileID: 3113414916496484534}
   m_Layer: 6
   m_Name: Black Widow
   m_TagString: Enemy
@@ -897,6 +898,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5.5546002, y: 3.5641963, z: 4.7260203}
   m_Center: {x: 0.011307597, y: 1.2820971, z: 0.025023619}
+--- !u!95 &3113414916496484534
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2263106299920881142}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 771f3c06a89ad7d46a992fedf32cb9c8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2307187428677649150
 GameObject:
   m_ObjectHideFlags: 0
