@@ -784,6 +784,7 @@ GameObject:
   - component: {fileID: 897118333364381382}
   - component: {fileID: 6797754274506788138}
   - component: {fileID: 3113414916496484534}
+  - component: {fileID: 5319471897958253022}
   m_Layer: 6
   m_Name: Black Widow
   m_TagString: Enemy
@@ -920,6 +921,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5319471897958253022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2263106299920881142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfb22d09fd4558e499326786dd9fb0e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 0}
+  attackCooldown: 1.5
+  attackLockTime: 2.6
+  damageAmount: 15
+  damageDelay: 0.8
+  spiderDamagePopupPrefab: {fileID: 8410938667560919806, guid: b19157c06afe35449a9cd11840091df7, type: 3}
 --- !u!1 &2307187428677649150
 GameObject:
   m_ObjectHideFlags: 0
