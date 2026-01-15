@@ -1,99 +1,164 @@
 using UnityEngine;
 using System;
+using TMPro;
 
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("Variables")]
+    [Header("Health")]
     public int maxHealth = 100;
     public int health;
     public bool takeDamage = true;
 
-    [Header("UI")]
-    public GameObject depletedText;
+    [Header("Shop (Optional)")]
+    public GameObject healthShopPanel;
+    public bool pauseOnShop = true;
 
-    [Header("References")]
-    public SpellCaster spellCast;
-
-    [Header("Damage Floating Text (for enemy hits)")]
-    public GameObject damageFloatingTextPrefab; // this is your "-10" prefab
-    public Transform textSpawnPoint;
-    public Vector3 textOffset = new Vector3(0f, 1.6f, 0f);
+    [Header("Default Popup (Optional)")]
+    public GameObject damagePopupPrefab; 
+    public float popupHeight = 1.6f;
 
     public event Action<int, int> OnHealthChanged;
+    public event Action OnDied;
+
+    bool isDeadOrShopping;
 
     void Start()
     {
         health = maxHealth;
-        takeDamage = true;
+        isDeadOrShopping = false;
 
-        if (depletedText != null)
-            depletedText.SetActive(false);
+        if (healthShopPanel != null)
+            healthShopPanel.SetActive(false);
 
         OnHealthChanged?.Invoke(health, maxHealth);
     }
 
-    void Update()
-    {
-        if (health <= 0)
-        {
-            health = 0;
-            takeDamage = false;
-
-            if (spellCast != null)
-                spellCast.isCasting = false;
-
-            if (depletedText != null)
-                depletedText.SetActive(true);
-        }
-    }
-
-    // ✅ Use this for ENEMY damage (shows damage text)
     public void TakeDamage(int amount)
     {
-        if (!takeDamage) return;
-        if (amount <= 0) return;
-
-        health -= amount;
-        health = Mathf.Clamp(health, 0, maxHealth);
-
-        ShowDamageText(amount);
-        OnHealthChanged?.Invoke(health, maxHealth);
+        TakeDamage(amount, null);
     }
 
-    // ✅ Use this for SPELL COSTS (NO damage text)
-    public void SpendHealth(int amount)
+    public void TakeDamage(int amount, GameObject popupPrefabOverride)
     {
-        if (!takeDamage) return;
-        if (amount <= 0) return;
+        if (!takeDamage || isDeadOrShopping || amount <= 0) return;
 
-        health -= amount;
-        health = Mathf.Clamp(health, 0, maxHealth);
+        health = Mathf.Clamp(health - amount, 0, maxHealth);
+
+        SpawnPopup(amount, popupPrefabOverride);
 
         OnHealthChanged?.Invoke(health, maxHealth);
+
+        if (health <= 0)
+            Die();
     }
 
-    void ShowDamageText(int amount)
+    public bool SpendHealth(int amount)
     {
-        if (damageFloatingTextPrefab == null) return;
+        return SpendHealth(amount, null);
+    }
 
-        Transform spawnT = textSpawnPoint != null ? textSpawnPoint : transform;
-        Vector3 pos = spawnT.position + textOffset;
+    public bool SpendHealth(int amount, GameObject popupPrefabOverride)
+    {
+        if (isDeadOrShopping || amount <= 0) return false;
 
-        GameObject popupObj = Instantiate(damageFloatingTextPrefab, pos, Quaternion.identity);
-
-        // Face the camera (flip 180 if your prefab is backwards)
-        if (Camera.main != null)
+        if (health - amount <= 0)
         {
-            popupObj.transform.rotation =
-                Camera.main.transform.rotation * Quaternion.Euler(0f, 180f, 0f);
+            health = 0;
+            OnHealthChanged?.Invoke(health, maxHealth);
+            Die();
+            return false;
         }
 
-        // Optional: if your prefab has TMP/TextMesh, this will update it to "-amount"
-        // If your prefab already has "-10" baked in, this won't hurt (you can delete this part if you want).
-        var tmp = popupObj.GetComponentInChildren<TMPro.TextMeshPro>();
-        if (tmp != null) tmp.text = "-" + amount.ToString();
+        health = Mathf.Clamp(health - amount, 0, maxHealth);
 
-        var tm = popupObj.GetComponentInChildren<TextMesh>();
-        if (tm != null) tm.text = "-" + amount.ToString();
+        SpawnPopup(amount, popupPrefabOverride);
+
+        OnHealthChanged?.Invoke(health, maxHealth);
+        return true;
+    }
+
+    public void Heal(int amount)
+    {
+        if (amount <= 0) return;
+
+        health = Mathf.Clamp(health + amount, 0, maxHealth);
+        OnHealthChanged?.Invoke(health, maxHealth);
+    }
+
+    public void ReviveTo(int targetHealth)
+    {
+        targetHealth = Mathf.Clamp(targetHealth, 1, maxHealth);
+
+        health = targetHealth;
+        OnHealthChanged?.Invoke(health, maxHealth);
+
+        ResumeFromShop();
+    }
+
+
+    void Die()
+    {
+        if (isDeadOrShopping) return;
+
+        isDeadOrShopping = true;
+        takeDamage = false;
+
+        OnDied?.Invoke();
+
+        if (healthShopPanel != null)
+        {
+            healthShopPanel.SetActive(true);
+            if (pauseOnShop) Time.timeScale = 0f;
+        }
+    }
+
+    public void ResumeFromShop()
+    {
+        isDeadOrShopping = false;
+        takeDamage = true;
+
+        if (healthShopPanel != null)
+            healthShopPanel.SetActive(false);
+
+        if (pauseOnShop)
+            Time.timeScale = 1f;
+    }
+
+    void SpawnPopup(int amount, GameObject popupOverride)
+    {
+        GameObject prefabToUse = popupOverride != null ? popupOverride : damagePopupPrefab;
+        if (prefabToUse == null) return;
+
+        Vector3 worldPos = transform.position + Vector3.up * popupHeight;
+
+        GameObject popup = Instantiate(prefabToUse);
+
+        RectTransform rt = popup.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            Canvas canvas = FindAnyObjectByType<Canvas>();
+            if (canvas == null)
+            {
+                Destroy(popup);
+                return;
+            }
+
+            popup.transform.SetParent(canvas.transform, false);
+
+            Camera cam = Camera.main;
+            rt.position = cam != null
+                ? cam.WorldToScreenPoint(worldPos)
+                : new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+        }
+        else
+        {
+            popup.transform.position = worldPos;
+            if (Camera.main != null)
+                popup.transform.rotation = Camera.main.transform.rotation;
+        }
+
+        TMP_Text tmp = popup.GetComponentInChildren<TMP_Text>();
+        if (tmp != null)
+            tmp.text = $"-{amount}";
     }
 }

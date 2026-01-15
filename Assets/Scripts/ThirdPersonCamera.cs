@@ -11,7 +11,7 @@ public class ThirdPersonCamera : MonoBehaviour
     public LayerMask collisionLayers;
 
     [Header("Pivot Settings")]
-    public float pivotHeight = 1.6f;   // Height where the ray starts (chest/head height)
+    public float pivotHeight = 1.6f;   
 
     private Vector3 offset;
 
@@ -23,7 +23,6 @@ public class ThirdPersonCamera : MonoBehaviour
             return;
         }
 
-        // Capture scene-view offset
         offset = transform.position - target.position;
     }
 
@@ -31,16 +30,13 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        // === 1. Desired camera position ===
         Vector3 desiredPosition = target.position + offset;
 
-        // === 2. Raise ray origin to chest/head height ===
         Vector3 pivot = target.position + Vector3.up * pivotHeight;
 
         Vector3 direction = (desiredPosition - pivot).normalized;
         float targetDistance = Vector3.Distance(pivot, desiredPosition);
 
-        // === 3. Wall collision check ===
         if (Physics.SphereCast(
             pivot,
             cameraRadius,
@@ -52,7 +48,6 @@ public class ThirdPersonCamera : MonoBehaviour
             desiredPosition = pivot + direction * (hit.distance - collisionBuffer);
         }
 
-        // === 4. Smooth movement (NO ROTATION) ===
         transform.position = Vector3.Lerp(
             transform.position,
             desiredPosition,

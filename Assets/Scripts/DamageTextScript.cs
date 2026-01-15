@@ -31,7 +31,6 @@ public class DamageTextScript : MonoBehaviour
     {
         if (tmp == null) return;
 
-        // Restart animation cleanly
         if (routine != null) StopCoroutine(routine);
 
         tmp.text = "-" + amount;

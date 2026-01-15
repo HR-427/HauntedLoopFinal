@@ -18,7 +18,6 @@ public class DoorInteract : MonoBehaviour
     private bool playerInRange;
     private bool isTeleporting;
 
-    // Tracks which side the player is currently on
     private bool playerIsOutside;
 
     private Rigidbody playerRb;
@@ -35,7 +34,6 @@ public class DoorInteract : MonoBehaviour
     {
         interactText.gameObject.SetActive(false);
 
-        // Determine starting side ONCE
         float distOutside = Vector3.Distance(player.position, outsidePoint.position);
         float distInside = Vector3.Distance(player.position, insidePoint.position);
         playerIsOutside = distOutside < distInside;
@@ -70,7 +68,6 @@ public class DoorInteract : MonoBehaviour
         playerRb.angularVelocity = Vector3.zero;
         playerRb.position = target.position;
 
-        // Flip side after teleport
         playerIsOutside = !playerIsOutside;
 
         yield return new WaitForFixedUpdate();

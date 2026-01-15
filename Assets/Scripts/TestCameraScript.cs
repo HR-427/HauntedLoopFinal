@@ -10,8 +10,8 @@ public class TestCameraScript : MonoBehaviour
     public float positionSmooth = 5f;
     public float rotationSmooth = 2f;
 
-    public float collisionRadius = 0.3f;     // Thickness of camera collision
-    public LayerMask collisionLayers;        // Walls only
+    public float collisionRadius = 0.3f;     
+    public LayerMask collisionLayers;        
 
     private Vector3 currentVelocity;
 
@@ -19,13 +19,10 @@ public class TestCameraScript : MonoBehaviour
     {
         if (player == null) return;
 
-        // Target point on the player (slightly above)
         Vector3 target = player.position + Vector3.up * height;
 
-        // Desired camera position behind the player
         Vector3 desiredPosition = target - player.forward * distance;
 
-        // ===== WALL COLLISION CHECK =====
         Vector3 direction = desiredPosition - target;
         float maxDistance = distance;
 
@@ -37,11 +34,9 @@ public class TestCameraScript : MonoBehaviour
             maxDistance,
             collisionLayers))
         {
-            // Move camera closer if wall is hit
             desiredPosition = target + direction.normalized * (hit.distance - 0.05f);
         }
 
-        // Smooth position movement
         transform.position = Vector3.SmoothDamp(
             transform.position,
             desiredPosition,
@@ -49,7 +44,6 @@ public class TestCameraScript : MonoBehaviour
             1f / positionSmooth
         );
 
-        // Smooth rotation toward the player
         Vector3 lookTarget = player.position + Vector3.up;
         Quaternion targetRotation = Quaternion.LookRotation(lookTarget - transform.position);
 

@@ -19,7 +19,6 @@ public class EnemyRoam : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-        // If enemy reached destination, wait then move again
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
         {
             if (timer >= waitTime)

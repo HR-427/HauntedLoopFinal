@@ -23,6 +23,8 @@ public class PlayerHealthBar : MonoBehaviour
 
     void UpdateHealthBar(int current, int max)
     {
+        Debug.Log($"[HealthBar] UpdateHealthBar current={current} max={max}");
+
         healthFill.fillAmount = Mathf.Clamp01((float)current / max);
     }
 }

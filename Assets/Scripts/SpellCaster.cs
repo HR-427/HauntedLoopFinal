@@ -48,27 +48,22 @@ public class SpellCaster : MonoBehaviour
     {
         isCasting = true;
 
-        // Take health once per cast
-        playerHealth.TakeDamage(spellHealthCost);
+        if (playerHealth == null || !playerHealth.SpendHealth(spellHealthCost))
+        {
+            isCasting = false;
+            yield break;
+        }
 
-        // Disable movement while casting
         if (playerMovement != null)
             playerMovement.SetMovementEnabled(false);
 
-        // Play cast animation
         if (animator != null)
             animator.SetTrigger("Cast");
 
-        // ✅ HIT DETECTION: do it ONCE (or you can time it to an animation event)
-        Collider[] hits = Physics.OverlapSphere(
-            hitOrigin.position,
-            hitRadius,
-            enemyLayers
-        );
+        Collider[] hits = Physics.OverlapSphere(hitOrigin.position, hitRadius, enemyLayers);
 
         for (int i = 0; i < hits.Length; i++)
         {
-            // Prefer killing via SpiderEnemy script (plays die animation)
             SpiderEnemy spider = hits[i].GetComponentInParent<SpiderEnemy>();
             if (spider != null)
             {
@@ -76,14 +71,11 @@ public class SpellCaster : MonoBehaviour
                 continue;
             }
 
-            // Fallback: if it's some other enemy without SpiderEnemy, destroy it
             Destroy(hits[i].gameObject);
         }
 
-        // Wait for cast to finish
         yield return new WaitForSeconds(castDuration);
 
-        // Re-enable movement
         if (playerMovement != null)
             playerMovement.SetMovementEnabled(true);
 

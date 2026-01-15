@@ -12,7 +12,9 @@ public class SpiderEnemy : MonoBehaviour
 
     [Header("Damage")]
     public int damageAmount = 15;
-    public float damageDelay = 0.8f; 
+    public float damageDelay = 0.8f;
+
+    [Tooltip("Optional: override popup prefab for spider damage. If null, PlayerHealth uses its default popup.")]
     public GameObject spiderDamagePopupPrefab;
 
     NavMeshAgent agent;
@@ -36,14 +38,24 @@ public class SpiderEnemy : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
+            Debug.Log($"[SpiderEnemy] Triggered Player: {other.name}");
+
             PlayerHealth ph = other.GetComponentInParent<PlayerHealth>();
             if (ph != null)
+            {
+                Debug.Log($"[SpiderEnemy] Found PlayerHealth on: {ph.gameObject.name}. Starting attack.");
                 StartCoroutine(AttackRoutine(ph));
+            }
+            else
+            {
+                Debug.LogWarning($"[SpiderEnemy] PlayerHealth NOT found on {other.name} or its parents.");
+            }
         }
     }
 
     IEnumerator AttackRoutine(PlayerHealth playerHealth)
     {
+        Debug.Log("[SpiderEnemy] AttackRoutine started.");
         canAttack = false;
 
         if (agent != null)
@@ -59,31 +71,59 @@ public class SpiderEnemy : MonoBehaviour
         }
 
         if (animator != null)
+        {
             animator.SetTrigger("Attack");
+            Debug.Log("[SpiderEnemy] Attack trigger set on Animator.");
+        }
+        else
+        {
+            Debug.LogWarning("[SpiderEnemy] Animator is NULL.");
+        }
 
         if (damageDelay > 0f)
+        {
+            Debug.Log($"[SpiderEnemy] Waiting damageDelay: {damageDelay}s");
             yield return new WaitForSeconds(damageDelay);
+        }
 
-        // ✅ Deal damage + show spider damage popup
+        Debug.Log($"[SpiderEnemy] Attempting damage. isDead={isDead}, playerHealthNull={(playerHealth == null)}, takeDamage={(playerHealth != null ? playerHealth.takeDamage : false)}");
+
         if (!isDead && playerHealth != null && playerHealth.takeDamage)
-            playerHealth.TakeDamage(damageAmount);
+        {
+            playerHealth.TakeDamage(damageAmount, spiderDamagePopupPrefab);
+            Debug.Log($"[SpiderEnemy] Damage applied: {damageAmount} (popupOverride={(spiderDamagePopupPrefab ? spiderDamagePopupPrefab.name : "NULL")})");
+        }
+        else
+        {
+            Debug.LogWarning("[SpiderEnemy] Damage NOT applied (blocked by isDead/playerHealth null/takeDamage false).");
+        }
 
         float remaining = attackLockTime - damageDelay;
         if (remaining > 0f)
+        {
+            Debug.Log($"[SpiderEnemy] Waiting remaining lock time: {remaining}s");
             yield return new WaitForSeconds(remaining);
+        }
 
         if (!isDead && agent != null)
+        {
             agent.isStopped = false;
+            Debug.Log("[SpiderEnemy] Agent resumed.");
+        }
 
+        Debug.Log($"[SpiderEnemy] Waiting attackCooldown: {attackCooldown}s");
         yield return new WaitForSeconds(attackCooldown);
-        canAttack = true;
-    }
 
+        canAttack = true;
+        Debug.Log("[SpiderEnemy] AttackRoutine finished. canAttack=true");
+    }
 
     public void Die()
     {
         if (isDead) return;
         isDead = true;
+
+        Debug.Log("[SpiderEnemy] Die() called.");
 
         if (agent != null)
         {

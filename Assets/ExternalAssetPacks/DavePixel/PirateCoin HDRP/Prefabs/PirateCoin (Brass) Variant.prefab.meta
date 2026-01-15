@@ -10,5 +10,6 @@ AssetOrigin:
   productId: 207743
   packageName: Pirate Coin
   packageVersion: 1.0
-  assetPath: Assets/DavePixel/PirateCoin HDRP/Prefabs/PirateCoin (Brass) Variant.prefab
+  assetPath: Assets/ExternalAssetPacks/DavePixel/PirateCoin HDRP/Prefabs/PirateCoin
+    (Brass) Variant.prefab
   uploadId: 467011

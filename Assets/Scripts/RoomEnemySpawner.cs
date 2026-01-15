@@ -26,7 +26,6 @@ public class RoomEnemySpawner : MonoBehaviour
 
     IEnumerator SpawnEnemies()
     {
-        // wait a few seconds AFTER entering room
         yield return new WaitForSeconds(initialDelay);
 
         for (int i = 0; i < enemiesToSpawn; i++)
