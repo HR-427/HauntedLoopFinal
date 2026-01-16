@@ -33,6 +33,8 @@ public class SpellCaster : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) return;
+
         if (Input.GetKeyDown(KeyCode.C) &&
             !isCasting &&
             playerMovement != null &&

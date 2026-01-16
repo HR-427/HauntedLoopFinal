@@ -35,6 +35,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) return;
+
         isGrounded = Physics.CheckSphere(
             transform.position + Vector3.down * 0.3f,
             0.3f,

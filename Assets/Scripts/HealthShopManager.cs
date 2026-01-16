@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
-using Unity.Cinemachine;
+using UnityEngine.SceneManagement;
 
 public class HealthShopManager : MonoBehaviour
 {
@@ -12,20 +12,18 @@ public class HealthShopManager : MonoBehaviour
     [Header("UI")]
     public GameObject shopPanel;
     public TMP_Text coinText;
-    public TMP_Text messageText; 
+    public TMP_Text messageText;
+    public GameObject shopContentRoot;
 
     [Header("No Coins Behaviour")]
-    public Transform startSpawnPoint;        
-    public float noCoinsShowSeconds = 2f;    
-    public int reviveHealthWhenNoCoins = 25;
+    public float noCoinsShowSeconds = 2f;
+
+    bool isHandlingDeath;
 
     void Awake()
     {
         if (playerHealth == null)
             playerHealth = FindAnyObjectByType<PlayerHealth>();
-
-        if (wallet == null && playerHealth != null)
-            wallet = playerHealth.GetComponentInParent<CoinWallet>();
 
         if (wallet == null)
             wallet = FindAnyObjectByType<CoinWallet>();
@@ -51,82 +49,63 @@ public class HealthShopManager : MonoBehaviour
 
     void OnCoinsChanged(int coins)
     {
-        if (shopPanel != null && shopPanel.activeInHierarchy)
-            RefreshShopUI();
+        if (coinText != null)
+            coinText.text = coins.ToString();
     }
 
     void OnPlayerDied()
     {
-        if (wallet == null || playerHealth == null) return;
+        if (isHandlingDeath) return;
+        isHandlingDeath = true;
 
         if (shopPanel != null) shopPanel.SetActive(true);
-
-        if (messageText != null) messageText.text = "";
         Time.timeScale = 0f;
 
-        if (wallet.Coins <= 0)
+        if (wallet != null && wallet.Coins <= 0)
         {
-            if (messageText != null) messageText.text = "No coins...";
-            StartCoroutine(NoCoinsRespawnRoutine());
+            if (shopContentRoot != null) shopContentRoot.SetActive(false);
+            if (coinText != null) coinText.gameObject.SetActive(false);
+
+            if (messageText != null)
+                messageText.text = "Out of health!\nNo coins available.";
+
+            StartCoroutine(ReloadSceneAfterDelay());
             return;
         }
 
-        RefreshShopUI();
+        if (shopContentRoot != null) shopContentRoot.SetActive(true);
+        if (coinText != null) coinText.gameObject.SetActive(true);
+        if (messageText != null) messageText.text = "";
+        isHandlingDeath = false; 
     }
 
-    IEnumerator NoCoinsRespawnRoutine()
+    IEnumerator ReloadSceneAfterDelay()
     {
         yield return new WaitForSecondsRealtime(noCoinsShowSeconds);
 
-        if (shopPanel != null) shopPanel.SetActive(false);
-
-        RespawnAtStart_SnapCinemachine();
-
         Time.timeScale = 1f;
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-
-    void RespawnAtStart_SnapCinemachine()
-    {
-        if (startSpawnPoint == null)
-        {
-            Debug.LogError("[HealthShopManager] startSpawnPoint not assigned.");
-            return;
-        }
-
-        Transform playerRoot = playerHealth.transform.root;
-
-        Vector3 oldPos = playerRoot.position;
-        Vector3 newPos = startSpawnPoint.position;
-        Vector3 delta = newPos - oldPos;
-
-        playerRoot.position = newPos;
-        playerRoot.rotation = startSpawnPoint.rotation;
-
-        var brain = Camera.main != null ? Camera.main.GetComponent<Unity.Cinemachine.CinemachineBrain>() : null;
-        if (brain != null)
-            brain.ManualUpdate();
-
-        playerHealth.ReviveTo(reviveHealthWhenNoCoins);
-    }
-
 
     public void BuyHealth(int healthAmount)
     {
         if (wallet == null || playerHealth == null) return;
 
         int cost = GetCostForHealth(healthAmount);
-
         if (!wallet.SpendCoins(cost))
         {
             if (messageText != null) messageText.text = "Not enough coins!";
-            RefreshShopUI();
             return;
         }
 
         if (messageText != null) messageText.text = "";
-
         playerHealth.ReviveTo(healthAmount);
-        RefreshShopUI();
+
+        if (shopPanel != null) shopPanel.SetActive(false);
+        Time.timeScale = 1f;
+
+        isHandlingDeath = false;
     }
 
     int GetCostForHealth(int healthAmount)
@@ -138,11 +117,5 @@ public class HealthShopManager : MonoBehaviour
             case 100: return 130;
             default: return 9999;
         }
-    }
-
-    void RefreshShopUI()
-    {
-        if (coinText != null && wallet != null)
-            coinText.text = wallet.Coins.ToString();
     }
 }
