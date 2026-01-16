@@ -38,6 +38,8 @@ public class BombBlastSpell : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) return;
+
         if (Input.GetKeyDown(bombKey) && canCast)
             StartCoroutine(CastBomb());
     }

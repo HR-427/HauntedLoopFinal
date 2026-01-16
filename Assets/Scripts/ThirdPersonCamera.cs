@@ -28,6 +28,8 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void LateUpdate()
     {
+        if (Time.timeScale == 0f) return;
+
         if (target == null) return;
 
         Vector3 desiredPosition = target.position + offset;

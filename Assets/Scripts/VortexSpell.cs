@@ -62,6 +62,8 @@ public class VortexSpell : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0f) return;
+
         if (Input.GetKeyDown(vortexKey) && canCast)
             StartCoroutine(CastVortex());
     }
